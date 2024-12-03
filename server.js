@@ -1,11 +1,16 @@
 const express = require('express');
 const app = express();
+const port = 2333;
 
-app.get('/api/nodejs', (req, res) => {
-    res.json({ message: 'Hello from Node.js!' });
+// Middleware to parse JSON data
+app.use(express.json());
+
+// Example route
+app.get('/api/sample', (req, res) => {
+    res.json({ message: "Hello from Node.js backend!" });
 });
 
-const PORT = 2333;
-app.listen(PORT, () => {
-    console.log(`Node.js server running on port ${PORT}`);
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
 });
+
