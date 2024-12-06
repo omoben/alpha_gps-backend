@@ -1,7 +1,7 @@
 import requests
 
 # URL for the GET request to fetch GPS data
-url = "http://localhost:2333/api/gps/12345"
+url = "http://localhost:2333/api/gps"
 
 # Make a GET request to the API
 response = requests.get(url)
