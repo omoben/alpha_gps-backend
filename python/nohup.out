@@ -25,3 +25,8 @@ On macOS, try disabling the 'AirPlay Receiver' service from System Preferences -
 Address already in use
 Port 5000 is in use by another program. Either identify and stop that program, or start the server with a different port.
 On macOS, try disabling the 'AirPlay Receiver' service from System Preferences -> General -> AirDrop & Handoff.
+127.0.0.1 - - [09/Dec/2024 19:46:23] "[33mGET / HTTP/1.1[0m" 404 -
+127.0.0.1 - - [09/Dec/2024 19:46:23] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+127.0.0.1 - - [09/Dec/2024 20:23:31] "[33mGET / HTTP/1.1[0m" 404 -
+127.0.0.1 - - [09/Dec/2024 20:23:37] "[33mGET / HTTP/1.1[0m" 404 -
+127.0.0.1 - - [09/Dec/2024 22:10:46] "[33mGET / HTTP/1.1[0m" 404 -

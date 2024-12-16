@@ -1,0 +1,63 @@
+/* General styles */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    height: 100vh; /* Full viewport height */
+    display: flex;
+    flex-direction: column; /* Stack logo and button vertically */
+    justify-content: center; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
+    background: url('/static/background.png') no-repeat center center fixed; /* 
+Background image */
+    background-size: cover;
+    background-color: #f0f4f8; /* Fallback background color */
+}
+
+/* Splash screen container */
+.splash-container {
+    display: flex;
+    flex-direction: column; /* Stack logo and button */
+    align-items: center; /* Center logo and button horizontally */
+    justify-content: center; /* Center content vertically */
+    text-align: center;
+    flex-grow: 1; /* Allow the container to grow */
+    padding-bottom: 50px; /* Space between button and bottom */
+}
+
+/* Logo styling */
+.logo {
+    max-width: 300px; /* Adjust the size of the logo */
+    margin-bottom: 20px; /* Adds space below the logo */
+    animation: fade-in-out 3s infinite; /* Optional fade effect */
+}
+
+/* Button styling */
+.enter-button {
+    background-color: #004aad; /* Deep blue for the button */
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* Button hover effect */
+.enter-button:hover {
+    background-color: #003a8c; /* Darker blue on hover */
+    transform: scale(1.05);
+}
+
+/* Fade-in-out animation for logo */
+@keyframes fade-in-out {
+    0%, 100% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+

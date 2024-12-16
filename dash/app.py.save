@@ -1,0 +1,39 @@
+import dash
+import dash_leaflet as dl
+from dash import html
+from dash import Dash
+
+# Initialize the Dash app
+app = Dash(__name__)
+
+# Splash screen layout
+app.layout = html.Div(
+    className="splash-container",
+    children=[
+        html.Img(src="/assets/B_and_I_logo.png", className="logo"),
+        html.Div("Loading... Please Wait", className="loading-text"),
+    ]
+)
+
+if __name__ == '__main__':
+    app.run_server(host='0.0.0.0', port=8050, debug=True)
+
+# Coordinates for Benin City, Edo State, Nigeria
+benin_lat = 6.3375  # Latitude for Benin City
+benin_lon = 5.6037  # Longitude for Benin City
+
+# Layout with Map Component
+app.layout = html.Div([
+    html.H1("GPS Tracking Dashboard", style={"textAlign": "center"}),
+    dl.Map(center=[benin_lat, benin_lon], zoom=10, children=[
+        dl.TileLayer(),  # Base map layer
+        dl.Marker(position=[benin_lat, benin_lon], children=[
+            dl.Tooltip("DeviceID: 12345"),  # Tooltip with device info
+            dl.Popup(f"Latitude: {benin_lat}, Longitude: {benin_lon}"),  # Popup with more details
+        ])
+    ], style={'width': '100%', 'height': '500px'}),
+])
+
+if __name__ == '__main__':
+    app.run_server(host='0.0.0.0', port=8050, debug=True)
+

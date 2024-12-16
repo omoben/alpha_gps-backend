@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="splash-container">
+        <img src="{{ url_for('static', filename='bni_logo.png') }}" alt="B&I Logo" class="logo">
+        <a href="{{ url_for('dashboard') }}">
+            <button class="enter-button">Map</button>
+        </a>
+    </div>
+</body>
+</html>
+

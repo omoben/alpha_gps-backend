@@ -1,0 +1,65 @@
+k<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Interface</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-search/dist/leaflet-search.min.css" />
+    <!-- Socket.IO client -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+
+    <style>
+        /* Ensure the map takes full height and width */
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([6.3329, 5.6037], 13);
+
+        // Add tile layer (background map)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Initialize a layer group for markers
+        var searchLayer = new L.LayerGroup().addTo(map);
+
+        // Socket.IO Client setup
+        var socket = io("http://localhost:2333"); // Connect to Node.js server
+
+        // Listen for the 'gpsData' event and update the map with received GPS data
+        socket.on('gpsData', function(data) {
+            // Add the GPS data received in real-time to the map
+            var marker = L.marker([data.Latitude, data.Longitude]).addTo(searchLayer)
+                .bindPopup("<b>" + data.DeviceID + "</b><br>Timestamp: " + data.Timestamp);
+
+            // Optionally, you can zoom in on the marker
+            map.setView([data.Latitude, data.Longitude], 15);
+        });
+
+        // Enable geolocation
+        map.locate({ setView: true, maxZoom: 16 });
+        map.on('locationfound', function(e) {
+            var userMarker = L.marker(e.latlng).addTo(map)
+                .bindPopup("You are here!")
+                .openPopup();
+        });
+        map.on('locationerror', function() {
+            alert("Geolocation failed. Please allow location access.");
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,55 @@
+/* Reset some default styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;  
+    align-items: center;
+    justify-content: center;
+    background: url('{{ url_for('static', filename='background.png') }}') no-repeat 
+center center;
+    background-size: cover;
+    font-family: Arial, sans-serif;
+}
+
+/* Container for logo and button */
+.splash-container {
+    text-align: center;
+}
+
+/* Styling for the logo */
+.logo {
+    max-width: 200px; /* Adjust the size as needed */
+    margin-bottom: 20px;
+    animation: fade-in-out 3s infinite; /* Optional fade effect */
+}
+
+/* Button styling */
+.enter-button {
+    background-color: gold;
+    color: black;
+    font-size: 18px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease;
+}
+
+/* Button hover effect */
+.enter-button:hover {
+    background-color: darkgoldenrod;
+}
+
+/* Fade-in-out animation */
+@keyframes fade-in-out {
+    0%, 100% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1; 
+    }
+}
+
