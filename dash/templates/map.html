@@ -6,6 +6,9 @@
     <title>Map Interface</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <!-- Leaflet Marker Cluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
     <!-- Leaflet Search CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet-search/dist/leaflet-search.min.css" />
     <!-- Your custom CSS -->
@@ -16,27 +19,40 @@
             height: 100vh;
             width: 100%;
         }
-
-        /* Ensure that the search control is visible */
-        .leaflet-control-search {
-            z-index: 9999; /* Ensure it's above other map elements */
+        /* Style for filter controls */
+        #filter-controls {
             position: absolute;
-            top: 10px; /* Adjust positioning if needed */
+            top: 10px;
             left: 10px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
+    <div id="filter-controls">
+        <!-- Filtering Controls (e.g., device_id filter) -->
+        <label for="device-id">Device ID:</label>
+        <input type="text" id="device-id" placeholder="Enter device ID" oninput="filterMarkers()" />
+    </div>
+
     <div id="map"></div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- Leaflet Marker Cluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     <!-- Leaflet Search JS -->
     <script src="https://unpkg.com/leaflet-search/dist/leaflet-search.min.js"></script>
-    <!-- Socket.IO -->
+    <!-- Socket.IO (optional for real-time updates) -->
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 
     <script>
+        // Get the logged-in user from the backend session
+        var currentUser = "{{ current_user.username }}"; // Get current logged-in username
+
         // Initialize the map
         var map = L.map('map').setView([6.3329, 5.6037], 13);
 
@@ -45,70 +61,91 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // Initialize a layer group for markers
-        var searchLayer = new L.LayerGroup().addTo(map);
+        // Initialize a marker cluster group
+        var markers = L.markerClusterGroup();
+
+        // Array to store all markers
+        var allMarkers = [];
 
         // Function to add markers to the map
         function addMarker(data) {
-            var marker = L.marker([data.Latitude, data.Longitude])
-                .addTo(searchLayer)
-                .bindPopup("<b>" + data.DeviceID + "</b><br>" + data.Timestamp);
-            marker.feature = { properties: { name: data.DeviceID } }; // Required for search
+            if (data.latitude && data.longitude) {
+                var marker = L.marker([data.latitude, data.longitude])
+                    .addTo(markers)
+                    .bindPopup("<b>" + data.device_id + "</b><br>" + data.equipment + "<br>" + data.state + "<br>" + data.timestamp);
+
+                // Ensure the marker has a feature property for search
+                marker.feature = {
+                    properties: {
+                        name: data.device_id // The name property for search
+                    }
+                };
+
+                // Store marker for filtering later
+                allMarkers.push({ marker: marker, data: data });
+            }
         }
 
-        // Fetch the initial GPS data from the backend
-        fetch('http://localhost:5000/api/gps')  // Change this to match your Flask backend port
-            .then(response => response.json())
-            .then(gpsData => {
-                // Add all GPS markers to the map
-                gpsData.forEach(function(data) {
-                    addMarker(data);
-                });
-         
-                // Check if Leaflet Search is loaded
-                console.log('Leaflet Search library loaded:', L.Control.Search);
+        // Function to filter markers by device ID
+        function filterMarkers() {
+            var filterValue = document.getElementById('device-id').value.toLowerCase();
 
-                // Initialize the Leaflet search control
+            // Clear all markers
+            markers.clearLayers();
+
+            // Filter markers based on the device_id input
+            allMarkers.forEach(function(item) {
+                if (item.data.device_id.toLowerCase().includes(filterValue)) {
+                    markers.addLayer(item.marker);
+                }
+            });
+        }
+
+        // Fetch GPS data from the backend for the logged-in user and add markers to the map
+        fetch(`/api/gps`)
+            .then(response => response.json()) // Parse JSON response
+            .then(gpsData => {
+                gpsData.forEach(function(data) {
+                    addMarker(data); // Add each GPS marker
+                });
+
+                // Add the marker cluster group to the map
+                map.addLayer(markers);
+
+                // Add search control for the markers
                 var searchControl = new L.Control.Search({
-                    layer: searchLayer,
-                    propertyName: 'name', // Search by "name" property
-                    marker: false,        // Disable auto-centering marker
+                    layer: markers,
+                    propertyName: 'name', // Search by device_id (name)
+                    marker: false,
                     moveToLocation: function(latlng, title, map) {
-                        map.setView(latlng, 15); // Set map zoom level when item is selected
+                        map.setView(latlng, 15); // Move the map to the marker location
                     }
                 });
-
-                // Handle search result
-                searchControl.on('search:locationfound', function(e) {
-                    e.layer.openPopup(); // Open marker popup when search result is found
-                });
-
-                // Add the search control to the map
                 map.addControl(searchControl);
-
             })
             .catch(error => {
                 console.error('Error fetching GPS data:', error);
             });
 
-        // Enable geolocation
+        // Real-time GPS updates with Socket.IO (optional)
+        const socket = io('http://localhost:2333');  // Change to your Socket.IO server URL
+
+        socket.on('gpsData', function(data) {
+            console.log('Received new GPS data:', data);
+            addMarker(data);
+        });
+
+        // Enable geolocation (user's current location)
         map.locate({ setView: true, maxZoom: 16 });
+
         map.on('locationfound', function(e) {
             var userMarker = L.marker(e.latlng).addTo(map)
                 .bindPopup("You are here!")
                 .openPopup();
         });
+
         map.on('locationerror', function() {
             alert("Geolocation failed. Please allow location access.");
-        });
-
-        // Set up real-time GPS updates using Socket.IO
-        const socket = io('http://localhost:2333');  // Ensure the correct URL if needed
-
-        // Listen for real-time GPS data from the backend
-        socket.on('gpsData', function(data) {
-            console.log('Received new GPS data:', data);
-            addMarker(data);  // Add the new GPS data to the map
         });
     </script>
 </body>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+</head>
+<body>
+    <h2>Register</h2>
+    <form method="POST" action="{{ url_for('register') }}">
+        {{ form.hidden_tag() }}
+        <p>{{ form.username.label }}<br>{{ form.username }}</p>
+        <p>{{ form.password.label }}<br>{{ form.password }}</p>
+        <p>{{ form.confirm_password.label }}<br>{{ form.confirm_password }}</p>
+        <p><button type="submit">Register</button></p>
+    </form>
+    <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+</body>
+</html>
+
