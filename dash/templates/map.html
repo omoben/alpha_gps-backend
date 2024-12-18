@@ -25,19 +25,21 @@
             top: 10px;
             left: 10px;
             z-index: 1000;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             padding: 10px;
             border-radius: 5px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
 <body>
+    <!-- Filtering Controls -->
     <div id="filter-controls">
-        <!-- Filtering Controls (e.g., device_id filter) -->
         <label for="device-id">Device ID:</label>
         <input type="text" id="device-id" placeholder="Enter device ID" oninput="filterMarkers()" />
     </div>
 
+    <!-- Map Container -->
     <div id="map"></div>
 
     <!-- Leaflet JS -->
@@ -46,12 +48,12 @@
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     <!-- Leaflet Search JS -->
     <script src="https://unpkg.com/leaflet-search/dist/leaflet-search.min.js"></script>
-    <!-- Socket.IO (optional for real-time updates) -->
+    <!-- Socket.IO -->
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 
     <script>
         // Get the logged-in user from the backend session
-        var currentUser = "{{ current_user.username }}"; // Get current logged-in username
+        var currentUser = "{{ current_user.username }}";
 
         // Initialize the map
         var map = L.map('map').setView([6.3329, 5.6037], 13);
@@ -61,39 +63,44 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // Initialize a marker cluster group
+        // Initialize marker cluster group
         var markers = L.markerClusterGroup();
 
-        // Array to store all markers
+        // Array to store all markers for filtering
         var allMarkers = [];
 
-        // Function to add markers to the map
+        // Add a marker to the map
         function addMarker(data) {
             if (data.latitude && data.longitude) {
                 var marker = L.marker([data.latitude, data.longitude])
-                    .addTo(markers)
-                    .bindPopup("<b>" + data.device_id + "</b><br>" + data.equipment + "<br>" + data.state + "<br>" + data.timestamp);
+                    .bindPopup(`
+                        <b>${data.device_id}</b><br>
+                        ${data.equipment}<br>
+                        ${data.state}<br>
+                        ${data.timestamp}
+                    `);
 
-                // Ensure the marker has a feature property for search
+                // Attach searchable property to the marker
                 marker.feature = {
                     properties: {
-                        name: data.device_id // The name property for search
+                        name: data.device_id
                     }
                 };
 
-                // Store marker for filtering later
+                // Add marker to cluster and storage
+                markers.addLayer(marker);
                 allMarkers.push({ marker: marker, data: data });
             }
         }
 
-        // Function to filter markers by device ID
+        // Filter markers by device ID
         function filterMarkers() {
             var filterValue = document.getElementById('device-id').value.toLowerCase();
 
-            // Clear all markers
+            // Clear existing markers
             markers.clearLayers();
 
-            // Filter markers based on the device_id input
+            // Add filtered markers back to the map
             allMarkers.forEach(function(item) {
                 if (item.data.device_id.toLowerCase().includes(filterValue)) {
                     markers.addLayer(item.marker);
@@ -101,45 +108,45 @@
             });
         }
 
-        // Fetch GPS data from the backend for the logged-in user and add markers to the map
+        // Fetch initial GPS data
         fetch(`/api/gps`)
-            .then(response => response.json()) // Parse JSON response
+            .then(response => response.json())
             .then(gpsData => {
-                gpsData.forEach(function(data) {
-                    addMarker(data); // Add each GPS marker
-                });
+                gpsData.forEach(addMarker);
 
-                // Add the marker cluster group to the map
+                // Add cluster group to map
                 map.addLayer(markers);
 
-                // Add search control for the markers
+                // Add search control
                 var searchControl = new L.Control.Search({
                     layer: markers,
-                    propertyName: 'name', // Search by device_id (name)
+                    propertyName: 'name',
                     marker: false,
                     moveToLocation: function(latlng, title, map) {
-                        map.setView(latlng, 15); // Move the map to the marker location
+                        map.setView(latlng, 15);
                     }
                 });
+
                 map.addControl(searchControl);
             })
             .catch(error => {
                 console.error('Error fetching GPS data:', error);
             });
 
-        // Real-time GPS updates with Socket.IO (optional)
-        const socket = io('http://localhost:2333');  // Change to your Socket.IO server URL
+        // Real-time GPS updates with Socket.IO
+        const socket = io('http://127.0.0.1:5000'); // Update this to your server's address
 
         socket.on('gpsData', function(data) {
-            console.log('Received new GPS data:', data);
+            console.log('New GPS data received:', data);
             addMarker(data);
         });
 
-        // Enable geolocation (user's current location)
+        // Enable geolocation
         map.locate({ setView: true, maxZoom: 16 });
 
         map.on('locationfound', function(e) {
-            var userMarker = L.marker(e.latlng).addTo(map)
+            L.marker(e.latlng)
+                .addTo(map)
                 .bindPopup("You are here!")
                 .openPopup();
         });

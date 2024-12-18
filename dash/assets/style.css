@@ -45,6 +45,26 @@ center center; /* Fixed the typo here */
     background-color: darkgoldenrod;
 }
 
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
+}
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+a:hover {
+    color: #0056b3;
+}
+/* Buttons */
+button, a {
+    cursor: pointer;
+}
+
 /* Fade-in-out animation */
 @keyframes fade-in-out {
     0%, 100% {

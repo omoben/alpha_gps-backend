@@ -3,16 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Landing Page</title>
+    <title>Welcome to GPS Tracker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background: url('{{ url_for('static', filename='background.png') }}') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .container {
+            max-width: 800px;
+            margin: 100px auto;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            color: #666;
+        }
+        .buttons a {
+            margin: 10px;
+            padding: 10px 20px;
+            color: white;
+            background: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .buttons a:hover {
+            background: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    <div class="splash-container">
-        <img src="{{ url_for('static', filename='bni_logo.png') }}" alt="B&I Logo" class="logo">
-        <a href="{{ url_for('map') }}">
-            <button class="enter-button">Map</button>
-        </a>
+    <div class="container">
+        <h1>Welcome to GPS Tracker</h1>
+        <p>Track and monitor your devices with ease. Select your role to proceed:</p>
+        <div class="buttons">
+            <a href="{{ url_for('login') }}?role=admin">Admin Login</a>
+            <a href="{{ url_for('login') }}?role=vendor">Vendor Login</a>
+            <a href="{{ url_for('login') }}?role=user">User Login</a>
+        </div>
     </div>
 </body>
 </html>
-
