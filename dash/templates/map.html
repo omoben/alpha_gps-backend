@@ -4,157 +4,111 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Map Interface</title>
-    <!-- Leaflet CSS -->
+    <!-- Leaflet and Plugins CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <!-- Leaflet Marker Cluster CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-    <!-- Leaflet Search CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet-search/dist/leaflet-search.min.css" />
-    <!-- Your custom CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* Ensure the map takes full height and width */
-        #map {
-            height: 100vh;
-            width: 100%;
-        }
-        /* Style for filter controls */
-        #filter-controls {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
-        }
-    </style>
 </head>
 <body>
-    <!-- Filtering Controls -->
+    <!-- Custom Features Tab -->
+    <div id="custom-features-tab">
+        <button onclick="showGeofences()" title="Geofences">📍 Geofences</button>
+        <button onclick="showHeatmap()" title="Heatmap">🔥 Heatmap</button>
+        <button onclick="manageDevices()" title="Devices">📱 Devices</button>
+        <button onclick="navigateHelp()" title="Help">❓ Help</button>
+    </div>
+
+    <!-- Navigation Tab -->
+    <div id="nav-tab">
+        <button onclick="navigateHome()" title="Home">🏠</button>
+        <button onclick="navigateAccount()" title="Account">👤</button>
+        <button onclick="navigateLogout()" title="Logout">🚪</button>
+    </div>
+
+    <!-- Filter Controls -->
     <div id="filter-controls">
         <label for="device-id">Device ID:</label>
         <input type="text" id="device-id" placeholder="Enter device ID" oninput="filterMarkers()" />
+        <br>
+        <label><input type="checkbox" id="geofences-toggle"> Geofences</label><br>
+        <label><input type="checkbox" id="heatmap-toggle"> Heatmap</label>
     </div>
 
     <!-- Map Container -->
     <div id="map"></div>
 
-    <!-- Leaflet JS -->
+    <!-- Leaflet and Plugins JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <!-- Leaflet Marker Cluster JS -->
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-    <!-- Leaflet Search JS -->
     <script src="https://unpkg.com/leaflet-search/dist/leaflet-search.min.js"></script>
-    <!-- Socket.IO -->
+    <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 
+    <!-- Map Script -->
     <script>
-        // Get the logged-in user from the backend session
-        var currentUser = "{{ current_user.username }}";
+        // Initialize Map
+        const map = L.map('map').setView([6.3329, 5.6037], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // Initialize the map
-        var map = L.map('map').setView([6.3329, 5.6037], 13);
+        const markers = L.markerClusterGroup();
+        const allMarkers = [];
+        const geofencesLayer = L.layerGroup().addTo(map);
+        const heatmapLayer = L.layerGroup().addTo(map);
 
-        // Add tile layer (background map)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-
-        // Initialize marker cluster group
-        var markers = L.markerClusterGroup();
-
-        // Array to store all markers for filtering
-        var allMarkers = [];
-
-        // Add a marker to the map
+        // Add Marker Function
         function addMarker(data) {
             if (data.latitude && data.longitude) {
-                var marker = L.marker([data.latitude, data.longitude])
-                    .bindPopup(`
-                        <b>${data.device_id}</b><br>
-                        ${data.equipment}<br>
-                        ${data.state}<br>
-                        ${data.timestamp}
-                    `);
-
-                // Attach searchable property to the marker
-                marker.feature = {
-                    properties: {
-                        name: data.device_id
-                    }
-                };
-
-                // Add marker to cluster and storage
+                const marker = L.marker([data.latitude, data.longitude])
+                    .bindPopup(`<b>${data.device_id}</b><br>${data.equipment}<br>${data.state}<br>${data.timestamp}`);
                 markers.addLayer(marker);
                 allMarkers.push({ marker: marker, data: data });
             }
         }
 
-        // Filter markers by device ID
+        // Filter Markers Based on Device ID
         function filterMarkers() {
-            var filterValue = document.getElementById('device-id').value.toLowerCase();
+            const filterValue = document.getElementById('device-id').value.toLowerCase();
+            markers.clearLayers(); // Clear current markers
 
-            // Clear existing markers
-            markers.clearLayers();
+            let foundDevice = false; // Flag for found device
 
-            // Add filtered markers back to the map
-            allMarkers.forEach(function(item) {
+            allMarkers.forEach(item => {
                 if (item.data.device_id.toLowerCase().includes(filterValue)) {
-                    markers.addLayer(item.marker);
+                    markers.addLayer(item.marker); // Add filtered marker
+                    if (!foundDevice) {
+                        map.setView(item.marker.getLatLng(), 15); // Focus on the first match
+                        foundDevice = true;
+                    }
                 }
             });
+
+            // Reset the view if no matches
+            if (!foundDevice && filterValue === '') {
+                map.setView([6.3329, 5.6037], 13);
+            }
         }
 
-        // Fetch initial GPS data
-        fetch(`/api/gps`)
+        // Fetch GPS Data on Load
+        fetch('/api/gps')
             .then(response => response.json())
             .then(gpsData => {
                 gpsData.forEach(addMarker);
-
-                // Add cluster group to map
                 map.addLayer(markers);
-
-                // Add search control
-                var searchControl = new L.Control.Search({
-                    layer: markers,
-                    propertyName: 'name',
-                    marker: false,
-                    moveToLocation: function(latlng, title, map) {
-                        map.setView(latlng, 15);
-                    }
-                });
-
-                map.addControl(searchControl);
-            })
-            .catch(error => {
-                console.error('Error fetching GPS data:', error);
             });
 
-        // Real-time GPS updates with Socket.IO
-        const socket = io('http://127.0.0.1:5000'); // Update this to your server's address
+        // Custom Features Button Actions
+        function showGeofences() { alert("Geofences feature clicked!"); }
+        function showHeatmap() { alert("Heatmap feature clicked!"); }
+        function manageDevices() { alert("Devices feature clicked!"); }
+        function navigateHelp() { alert("Help feature clicked!"); }
 
-        socket.on('gpsData', function(data) {
-            console.log('New GPS data received:', data);
-            addMarker(data);
-        });
-
-        // Enable geolocation
-        map.locate({ setView: true, maxZoom: 16 });
-
-        map.on('locationfound', function(e) {
-            L.marker(e.latlng)
-                .addTo(map)
-                .bindPopup("You are here!")
-                .openPopup();
-        });
-
-        map.on('locationerror', function() {
-            alert("Geolocation failed. Please allow location access.");
-        });
+        // Navigation Button Actions
+        function navigateHome() { window.location.href = '/'; }
+        function navigateAccount() { window.location.href = '/account'; }
+        function navigateLogout() { window.location.href = '/logout'; }
     </script>
 </body>
 </html>
-

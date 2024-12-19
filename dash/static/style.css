@@ -1,63 +1,111 @@
-/* General styles */
+/* General Styles */
 body {
+    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
-    height: 100vh; /* Full viewport height */
-    display: flex;
-    flex-direction: column; /* Stack logo and button vertically */
-    justify-content: center; /* Center content vertically */
-    align-items: center; /* Center content horizontally */
-    background: url('/static/background.png') no-repeat center center fixed; /* 
-Background image */
+    background: url('/static/background.png') no-repeat center center fixed;
     background-size: cover;
-    background-color: #f0f4f8; /* Fallback background color */
 }
 
-/* Splash screen container */
-.splash-container {
-    display: flex;
-    flex-direction: column; /* Stack logo and button */
-    align-items: center; /* Center logo and button horizontally */
-    justify-content: center; /* Center content vertically */
-    text-align: center;
-    flex-grow: 1; /* Allow the container to grow */
-    padding-bottom: 50px; /* Space between button and bottom */
+/* Map Full Height */
+#map {
+    height: 100vh;
+    width: 100%;
 }
 
-/* Logo styling */
-.logo {
-    max-width: 300px; /* Adjust the size of the logo */
-    margin-bottom: 20px; /* Adds space below the logo */
-    animation: fade-in-out 3s infinite; /* Optional fade effect */
-}
-
-/* Button styling */
-.enter-button {
-    background-color: #004aad; /* Deep blue for the button */
+/* Custom Features Tab */
+#custom-features-tab {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.5);
     color: white;
+    width: 60px;
+    border-radius: 0 10px 10px 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+}
+
+#custom-features-tab button {
+    margin: 10px 0;
+    padding: 10px;
     border: none;
-    padding: 15px 40px;
-    font-size: 20px;
-    border-radius: 25px;
+    background-color: rgba(0, 123, 255, 0.8);
+    color: white;
+    font-size: 14px;
+    border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* Button hover effect */
-.enter-button:hover {
-    background-color: #003a8c; /* Darker blue on hover */
-    transform: scale(1.05);
+#custom-features-tab button:hover {
+    background-color: rgba(0, 86, 179, 0.8);
 }
 
-/* Fade-in-out animation for logo */
-@keyframes fade-in-out {
-    0%, 100% {
-        opacity: 0;
+/* Filter Controls */
+#filter-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+}
+
+@media screen and (max-width: 768px) {
+    #filter-controls {
+        right: 10px;
+        top: auto;
+        bottom: 10px;
+        width: 90%; /* Make it fit smaller screens */
     }
-    50% {
-        opacity: 1;
-    }
 }
 
+/* Navigation Tab */
+#nav-tab {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    width: 60px;
+    border-radius: 10px 0 0 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+}
+
+#nav-tab button {
+    margin: 10px 0;
+    padding: 10px;
+    border: none;
+    background-color: rgba(0, 123, 255, 0.8);
+    color: white;
+    font-size: 14px;
+    border-radius: 50%;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#nav-tab button:hover {
+    background-color: rgba(0, 86, 179, 0.8);
+}

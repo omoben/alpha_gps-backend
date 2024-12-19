@@ -1,19 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Register</title>
-</head>
-<body>
-    <h2>Register</h2>
-    <form method="POST" action="{{ url_for('register') }}">
-        {{ form.hidden_tag() }}
-        <p>{{ form.username.label }}<br>{{ form.username }}</p>
-        <p>{{ form.password.label }}<br>{{ form.password }}</p>
-        <p>{{ form.confirm_password.label }}<br>{{ form.confirm_password }}</p>
-        <p><button type="submit">Register</button></p>
-    </form>
-    <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
-</body>
-</html>
+{% extends "base.html" %}
 
+{% block title %}Register for GPS Tracker{% endblock %}
+
+{% block content %}
+    <h2>Create Your Account</h2>
+    <p>Fill out the form to create an account and start tracking your devices.</p>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        
+        <div class="form-group">
+            <label for="username">Username</label>
+            {{ form.username(class="form-control") }}
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password</label>
+            {{ form.password(class="form-control") }}
+        </div>
+        
+        <div class="form-group">
+            <label for="confirm_password">Confirm Password</label>
+            {{ form.confirm_password(class="form-control") }}
+        </div>
+        
+        <!-- Vendor registration checkbox -->
+        <div class="form-group">
+            <label for="is_vendor">Register as Vendor</label>
+            <input type="checkbox" name="vendor" id="is_vendor" class="form-control"> Check if you are a vendor.
+        </div>
+        
+        <!-- Vendor specific fields (hidden by default) -->
+        <div id="vendor_fields" style="display:none;">
+            <div class="form-group">
+                <label for="company_name">Company Name</label>
+                <input type="text" name="company_name" id="company_name" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="contact_info">Contact Information</label>
+                <input type="text" name="contact_info" id="contact_info" class="form-control">
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-success">Register</button>
+    </form>
+
+    <!-- JavaScript to toggle the vendor fields -->
+    <script>
+        document.getElementById('is_vendor').addEventListener('change', function() {
+            var vendorFields = document.getElementById('vendor_fields');
+            if (this.checked) {
+                vendorFields.style.display = 'block';  // Show vendor fields
+            } else {
+                vendorFields.style.display = 'none';  // Hide vendor fields
+            }
+        });
+    </script>
+{% endblock %}

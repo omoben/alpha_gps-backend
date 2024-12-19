@@ -1,19 +1,86 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <h1>Admin Dashboard</h1>
-    <p>Welcome, {{ current_user.username }}! This is your admin dashboard.</p>
-    <ul>
-        <li><a href="/manage-users">Manage Users</a></li>
-        <li><a href="/view-activity">View Activity Logs</a></li>
-        <li><a href="/logout">Logout</a></li>
-    </ul>
-</body>
-</html>
+{% extends "base.html" %}
 
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Welcome, Admin!</h2>
+    <p>You can manage user accounts, add devices, and create new vendors.</p>
+
+    <!-- Button to open Add Device Modal -->
+    <button class="btn btn-primary" data-toggle="modal" data-target="#addDeviceModal">
+        Add Device to User
+    </button>
+    
+    <!-- Button to open Add Vendor Modal -->
+    <button class="btn btn-success" data-toggle="modal" data-target="#addVendorModal">
+        Create New Vendor Account
+    </button>
+
+    <!-- Add Device Modal -->
+    <div class="modal fade" id="addDeviceModal" tabindex="-1" role="dialog" aria-labelledby="addDeviceModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addDeviceModalLabel">Add Device to User</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="/admin/add_device">
+                        <div class="form-group">
+                            <label for="user_id">Select User</label>
+                            <select class="form-control" id="user_id" name="user_id">
+                                <!-- You would populate this dynamically with users -->
+                                <option value="user_id_1">User 1</option>
+                                <option value="user_id_2">User 2</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="device_name">Device Name</label>
+                            <input type="text" class="form-control" id="device_name" name="device_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="device_id">Device ID</label>
+                            <input type="text" class="form-control" id="device_id" name="device_id" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Device</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Vendor Modal -->
+    <div class="modal fade" id="addVendorModal" tabindex="-1" role="dialog" aria-labelledby="addVendorModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addVendorModalLabel">Create New Vendor Account</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="/admin/create_vendor">
+                        <div class="form-group">
+                            <label for="vendor_username">Vendor Username</label>
+                            <input type="text" class="form-control" id="vendor_username" name="vendor_username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vendor_password">Password</label>
+                            <input type="password" class="form-control" id="vendor_password" name="vendor_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vendor_confirm_password">Confirm Password</label>
+                            <input type="password" class="form-control" id="vendor_confirm_password" name="vendor_confirm_password" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Create Vendor</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

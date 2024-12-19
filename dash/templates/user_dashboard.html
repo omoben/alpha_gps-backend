@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}User Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Welcome, {{ current_user.username }}!</h2>
+    <p>Your real-time GPS tracking dashboard is ready.</p>
+
+    <!-- Map for displaying device locations -->
+    <div id="map" style="height: 500px;"></div>
+
+    <div class="row mt-4">
+        <div class="col">
+            <button class="btn btn-primary btn-block" data-toggle="modal" data-target="#addDeviceModal">
+                Add New Device
+            </button>
+        </div>
+        <div class="col">
+            <button class="btn btn-danger btn-block" data-toggle="modal" data-target="#logoutModal">
+                Logout
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for adding a new device -->
+<div class="modal fade" id="addDeviceModal" tabindex="-1" role="dialog" aria-labelledby="addDeviceModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addDeviceModalLabel">Add New GPS Device</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="/add_device">
+                    <!-- Device details form fields -->
+                    <div class="form-group">
+                        <label for="device_name">Device Name</label>
+                        <input type="text" class="form-control" id="device_name" name="device_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="device_id">Device ID</label>
+                        <input type="text" class="form-control" id="device_id" name="device_id" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Device</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Logout Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logoutModalLabel">Are you sure you want to logout?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                <a href="{{ url_for('logout') }}" class="btn btn-success">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    var map = L.map('map').setView([9.082, 8.6753], 6); // Default to Nigeria's coordinates
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Function to fetch GPS data for the logged-in user
+    function fetchGPSData() {
+        fetch('/api/gps')
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(device => {
+                    L.marker([device.latitude, device.longitude])
+                        .addTo(map)
+                        .bindPopup('<b>' + device.device_id + '</b><br>' + 'State: ' + device.state);
+                });
+            })
+            .catch(error => console.error('Error fetching GPS data:', error));
+    }
+
+    // Call fetchGPSData when the page loads
+    fetchGPSData();
+</script>
+{% endblock %}

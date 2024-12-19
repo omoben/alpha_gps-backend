@@ -1,19 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vendor Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <h1>Vendor Dashboard</h1>
-    <p>Welcome, {{ current_user.username }}! This is your vendor dashboard.</p>
-    <ul>
-        <li><a href="/manage-devices">Manage Devices</a></li>
-        <li><a href="/view-reports">View Reports</a></li>
-        <li><a href="/logout">Logout</a></li>
-    </ul>
-</body>
-</html>
+{% extends "base.html" %}
 
+{% block title %}Vendor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Welcome, {{ current_user.username }}!</h2>
+    <p>You can create admin accounts for managing your customers and devices.</p>
+
+    <!-- Button to open Create Admin Modal -->
+    <button class="btn btn-primary" data-toggle="modal" data-target="#createAdminModal">
+        Create New Admin Account
+    </button>
+
+    <!-- Create Admin Modal -->
+    <div class="modal fade" id="createAdminModal" tabindex="-1" role="dialog" aria-labelledby="createAdminModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createAdminModalLabel">Create New Admin Account</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="/vendor/create_admin">
+                        <div class="form-group">
+                            <label for="admin_username">Admin Username</label>
+                            <input type="text" class="form-control" id="admin_username" name="admin_username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="admin_password">Password</label>
+                            <input type="password" class="form-control" id="admin_password" name="admin_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="admin_confirm_password">Confirm Password</label>
+                            <input type="password" class="form-control" id="admin_confirm_password" name="admin_confirm_password" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Create Admin</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
