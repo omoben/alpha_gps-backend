@@ -13,25 +13,45 @@ body {
     width: 100%;
 }
 
-/* Custom Features Tab */
-#custom-features-tab {
+/* Custom Features Tab (Left) - Similar Style to Right */
+#custom-features-tab,
+#nav-tab {
     position: fixed;
     top: 50%;
-    left: 0;
-    transform: translateY(-50%);
     z-index: 2000;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7); /* Dark background */
     color: white;
     width: 60px;
-    border-radius: 0 10px 10px 0;
+    border-radius: 10px 0 0 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 10px 0;
+    transition: width 0.3s ease;
 }
 
-#custom-features-tab button {
+/* Custom Features Tab (Left) - Position */
+#custom-features-tab {
+    left: 0;
+    transform: translateY(-50%);
+}
+
+/* Navigation Tab (Right) - Position */
+#nav-tab {
+    right: 0;
+    transform: translateY(-50%);
+}
+
+/* Tab Hover Effect */
+#custom-features-tab:hover,
+#nav-tab:hover {
+    width: 150px; /* Expand tab on hover */
+}
+
+/* Tab Buttons */
+#custom-features-tab button,
+#nav-tab button {
     margin: 10px 0;
     padding: 10px;
     border: none;
@@ -40,15 +60,23 @@ body {
     font-size: 14px;
     border-radius: 50%;
     cursor: pointer;
-    width: 40px;
-    height: 40px;
+    width: 50px; /* Adjust size */
+    height: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-#custom-features-tab button:hover {
+#custom-features-tab button:hover,
+#nav-tab button:hover {
     background-color: rgba(0, 86, 179, 0.8);
+    filter: grayscale(50%); /* Grey out effect on hover */
+}
+
+/* Icons inside buttons */
+#custom-features-tab .icon,
+#nav-tab .icon {
+    font-size: 20px; /* Adjust size for consistency */
 }
 
 /* Filter Controls */
@@ -63,6 +91,18 @@ body {
     box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
 }
 
+/* Add a Search Bar for Device Name */
+#device-search {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+/* Rest of the CSS remains the same */
+
 @media screen and (max-width: 768px) {
     #filter-controls {
         right: 10px;
@@ -70,42 +110,4 @@ body {
         bottom: 10px;
         width: 90%; /* Make it fit smaller screens */
     }
-}
-
-/* Navigation Tab */
-#nav-tab {
-    position: fixed;
-    top: 50%;
-    right: 0;
-    transform: translateY(-50%);
-    z-index: 2000;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    width: 60px;
-    border-radius: 10px 0 0 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px 0;
-}
-
-#nav-tab button {
-    margin: 10px 0;
-    padding: 10px;
-    border: none;
-    background-color: rgba(0, 123, 255, 0.8);
-    color: white;
-    font-size: 14px;
-    border-radius: 50%;
-    cursor: pointer;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-#nav-tab button:hover {
-    background-color: rgba(0, 86, 179, 0.8);
 }

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Vendor Account Management{% endblock %}
+
+{% block content %}
+<h2>Manage Your Account</h2>
+<form method="POST">
+    <div class="form-group">
+        <label for="new_password">New Password</label>
+        <input type="password" class="form-control" name="new_password" placeholder="Enter new password">
+    </div>
+    <button type="submit" class="btn btn-success">Update Password</button>
+</form>
+{% endblock %}

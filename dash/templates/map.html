@@ -13,25 +13,45 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <!-- Custom Features Tab -->
+    <!-- Custom Features Tab (Left) -->
     <div id="custom-features-tab">
-        <button onclick="showGeofences()" title="Geofences">📍 Geofences</button>
-        <button onclick="showHeatmap()" title="Heatmap">🔥 Heatmap</button>
-        <button onclick="manageDevices()" title="Devices">📱 Devices</button>
-        <button onclick="navigateHelp()" title="Help">❓ Help</button>
+        <button onclick="showGeofences()" title="Geofences">
+            <span class="icon">📍</span>
+        </button>
+        <button onclick="showHeatmap()" title="Heatmap">
+            <span class="icon">🔥</span>
+        </button>
+        <button onclick="manageDevices()" title="Devices">
+            <span class="icon">📱</span>
+        </button>
+        <button onclick="showRouting()" title="Routing">
+            <span class="icon">🚗</span>
+        </button>
+        <button onclick="searchDeviceByName()" title="Search Device">
+            <span class="icon">🔍</span>
+        </button>
     </div>
 
-    <!-- Navigation Tab -->
+    <!-- Navigation Tab (Right) -->
     <div id="nav-tab">
-        <button onclick="navigateHome()" title="Home">🏠</button>
-        <button onclick="navigateAccount()" title="Account">👤</button>
-        <button onclick="navigateLogout()" title="Logout">🚪</button>
+        <button onclick="navigateHome()" title="Home">
+            <span class="icon">🏠</span>
+        </button>
+        <button onclick="navigateAccount()" title="Account">
+            <span class="icon">👤</span>
+        </button>
+        <button onclick="navigateLogout()" title="Logout">
+            <span class="icon">🚪</span>
+        </button>
     </div>
 
-    <!-- Filter Controls -->
+    <!-- Device Search Field -->
     <div id="filter-controls">
         <label for="device-id">Device ID:</label>
         <input type="text" id="device-id" placeholder="Enter device ID" oninput="filterMarkers()" />
+        <br>
+        <label for="device-name">Device Name:</label>
+        <input type="text" id="device-name" placeholder="Enter device name" oninput="searchDeviceByName()" />
         <br>
         <label><input type="checkbox" id="geofences-toggle"> Geofences</label><br>
         <label><input type="checkbox" id="heatmap-toggle"> Heatmap</label>
@@ -46,13 +66,12 @@
     <script src="https://unpkg.com/leaflet-search/dist/leaflet-search.min.js"></script>
     <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
     <!-- Map Script -->
     <script>
-        // Initialize Map
         const map = L.map('map').setView([6.3329, 5.6037], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
         const markers = L.markerClusterGroup();
         const allMarkers = [];
         const geofencesLayer = L.layerGroup().addTo(map);
@@ -68,12 +87,20 @@
             }
         }
 
+        // Fetch GPS Data on Load
+        fetch('/api/gps')
+            .then(response => response.json())
+            .then(gpsData => {
+                gpsData.forEach(addMarker);
+                map.addLayer(markers);
+            });
+
         // Filter Markers Based on Device ID
         function filterMarkers() {
             const filterValue = document.getElementById('device-id').value.toLowerCase();
             markers.clearLayers(); // Clear current markers
 
-            let foundDevice = false; // Flag for found device
+            let foundDevice = false;
 
             allMarkers.forEach(item => {
                 if (item.data.device_id.toLowerCase().includes(filterValue)) {
@@ -85,25 +112,37 @@
                 }
             });
 
-            // Reset the view if no matches
             if (!foundDevice && filterValue === '') {
                 map.setView([6.3329, 5.6037], 13);
             }
         }
 
-        // Fetch GPS Data on Load
-        fetch('/api/gps')
-            .then(response => response.json())
-            .then(gpsData => {
-                gpsData.forEach(addMarker);
-                map.addLayer(markers);
+        // Search Device by Name
+        function searchDeviceByName() {
+            const nameSearch = document.getElementById('device-name').value.toLowerCase();
+            let foundDevice = false;
+
+            allMarkers.forEach(item => {
+                const deviceName = item.data.equipment.toLowerCase();
+                if (deviceName.includes(nameSearch)) {
+                    markers.addLayer(item.marker);
+                    if (!foundDevice) {
+                        map.setView(item.marker.getLatLng(), 15); // Zoom to the device's location
+                        foundDevice = true;
+                    }
+                }
             });
+
+            if (!foundDevice && nameSearch === '') {
+                map.setView([6.3329, 5.6037], 13); // Reset view if no search
+            }
+        }
 
         // Custom Features Button Actions
         function showGeofences() { alert("Geofences feature clicked!"); }
         function showHeatmap() { alert("Heatmap feature clicked!"); }
         function manageDevices() { alert("Devices feature clicked!"); }
-        function navigateHelp() { alert("Help feature clicked!"); }
+        function showRouting() { alert("Routing feature clicked!"); }
 
         // Navigation Button Actions
         function navigateHome() { window.location.href = '/'; }
