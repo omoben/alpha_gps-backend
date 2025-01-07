@@ -1,30 +1,34 @@
 {% extends "base.html" %}
 
+{% block title %}Login{% endblock %}
+
 {% block content %}
 <div class="container">
-    <h2 class="text-center">Login to Your GPS Tracker Account</h2>
-    <form method="POST">
+    <h2>Login</h2>
+    <form method="POST" action="{{ url_for('login') }}">
         {{ form.hidden_tag() }}
+
+        <!-- Email Field -->
         <div class="form-group">
-            <label for="username">Username</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="fas fa-user"></i></span>
-                {{ form.username(class="form-control") }}
-            </div>
+            <label for="email">Email</label>
+            {{ form.email(class="form-control", placeholder="Enter email address") }}
         </div>
+
+        <!-- Password Field -->
         <div class="form-group">
             <label for="password">Password</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                {{ form.password(class="form-control") }}
-            </div>
+            {{ form.password(class="form-control", placeholder="Enter password") }}
         </div>
-        <div class="form-group form-check">
-            <label for="remember_me" class="form-check-label">
-                {{ form.remember_me() }} Remember Me
-            </label>
+
+        <!-- Remember Me Checkbox -->
+        <div class="form-group">
+            {{ form.remember_me() }} Remember Me
         </div>
-        <button type="submit" class="btn btn-primary btn-block">Login</button>
+
+        <!-- Submit Button -->
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Login</button>
+        </div>
     </form>
 </div>
 {% endblock %}

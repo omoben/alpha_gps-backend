@@ -1,66 +1,84 @@
 {% extends "base.html" %}
 
-{% block title %}Register for GPS Tracker{% endblock %}
+{% block title %}Register{% endblock %}
 
 {% block content %}
-    <h2>Create Your Account</h2>
-    <p>Fill out the form to create an account and start tracking your devices.</p>
-    <form method="POST" novalidate>
+<div class="container">
+    <h2>Create a Vendor Account</h2>
+    
+    <!-- Display Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alert alert-{{ messages[0][0] }}">
+                {{ messages[0][1] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST" action="{{ url_for('register') }}">
         {{ form.hidden_tag() }}
-
+        
         <!-- Username Field -->
         <div class="form-group">
             <label for="username">Username</label>
-            {{ form.username(class="form-control", placeholder="Enter your username", required=True) }}
+            {{ form.username(class="form-control") }}
         </div>
-
+        
+        <!-- Email Field -->
+        <div class="form-group">
+            <label for="email">Email</label>
+            {{ form.email(class="form-control") }}
+        </div>
+        
         <!-- Password Field -->
         <div class="form-group">
             <label for="password">Password</label>
-            {{ form.password(class="form-control", placeholder="Enter a strong password", required=True) }}
+            {{ form.password(class="form-control") }}
         </div>
-
+        
         <!-- Confirm Password Field -->
         <div class="form-group">
             <label for="confirm_password">Confirm Password</label>
-            {{ form.confirm_password(class="form-control", placeholder="Re-enter your password", required=True) }}
+            {{ form.confirm_password(class="form-control") }}
         </div>
-
+        
         <!-- Vendor Registration Checkbox -->
-        <div class="form-check mb-3">
-            <input type="checkbox" class="form-check-input" name="vendor" id="is_vendor">
-            <label class="form-check-label" for="is_vendor">Register as Vendor</label>
+        <div class="form-group">
+            <label for="register_as_vendor">
+                {{ form.register_as_vendor() }} Register as Vendor
+            </label>
         </div>
-
-        <!-- Vendor-Specific Fields (Hidden by Default) -->
-        <div id="vendor_fields" style="display:none; padding: 15px; border: 1px solid #ddd; margin-bottom: 20px; border-radius: 5px;">
-            <h5>Vendor Information</h5>
+        
+        <!-- Vendor Details Fields (Hidden by default) -->
+        <div id="vendorFields" style="display: none;">
             <div class="form-group">
                 <label for="company_name">Company Name</label>
-                <input type="text" name="company_name" id="company_name" class="form-control" placeholder="Enter your company name">
+                {{ form.company_name(class="form-control") }}
             </div>
+
             <div class="form-group">
                 <label for="contact_info">Contact Information</label>
-                <input type="text" name="contact_info" id="contact_info" class="form-control" placeholder="Enter your contact details">
+                {{ form.contact_info(class="form-control") }}
             </div>
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-success">Register</button>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Register</button>
+        </div>
     </form>
+</div>
 
-    <!-- JavaScript for Vendor Fields Toggle -->
-    <script>
-        document.getElementById('is_vendor').addEventListener('change', function() {
-            var vendorFields = document.getElementById('vendor_fields');
-            vendorFields.style.display = this.checked ? 'block' : 'none';
-        });
+<script>
+    // JavaScript to toggle vendor-specific fields visibility
+    document.getElementById("register_as_vendor").addEventListener("change", function() {
+        var vendorFields = document.getElementById("vendorFields");
+        if (this.checked) {
+            vendorFields.style.display = "block";  // Show vendor fields
+        } else {
+            vendorFields.style.display = "none";   // Hide vendor fields
+        }
+    });
+</script>
 
-        // Optionally: Prevent double submission
-        document.querySelector('form').addEventListener('submit', function(e) {
-            var submitButton = e.target.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            submitButton.innerHTML = "Registering...";
-        });
-    </script>
 {% endblock %}

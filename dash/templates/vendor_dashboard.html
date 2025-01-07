@@ -20,7 +20,11 @@
 
     <!-- Admin Users Section -->
     <h3 class="mt-5">Admin Users</h3>
+
+    <!-- Button to Open Floating Form for Creating Admin -->
     <a href="{{ url_for('create_admin') }}" class="btn btn-primary mb-3">Create Admin</a>
+
+    <!-- Admin Users Table -->
     <table class="table table-bordered table-hover mt-3">
         <thead class="thead-light">
             <tr>
@@ -36,10 +40,7 @@
                         <td>{{ admin.username }}</td>
                         <td>{{ admin.email }}</td>
                         <td>
-                            <!-- Edit Button -->
-                            <a href="{{ url_for('update_user', user_id=admin['_id']) }}" class="btn btn-warning btn-sm">Edit</a> 
-
-                            <!-- Delete Button -->
+                            <a href="{{ url_for('update_user', user_id=admin['_id']) }}" class="btn btn-warning btn-sm">Edit</a>
                             <form method="POST" action="{{ url_for('delete_user', user_id=admin['_id']) }}" class="delete-form" style="display:inline;">
                                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>
@@ -56,7 +57,11 @@
 
     <!-- Sub-users Section -->
     <h3 class="mt-5">Sub-users</h3>
+
+    <!-- Button to Open Floating Form for Creating Sub-user -->
     <a href="{{ url_for('create_sub_user') }}" class="btn btn-primary mb-3">Create Sub-user</a>
+
+    <!-- Sub-users Table -->
     <table class="table table-bordered table-hover mt-3">
         <thead class="thead-light">
             <tr>
@@ -72,10 +77,7 @@
                         <td>{{ sub_user.username }}</td>
                         <td>{{ sub_user.email }}</td>
                         <td>
-                            <!-- Edit Button -->
-                            <a href="{{ url_for('update_user', user_id=sub_user['_id']) }}" class="btn btn-warning btn-sm">Edit</a> 
-
-                            <!-- Delete Button -->
+                            <a href="{{ url_for('update_user', user_id=sub_user['_id']) }}" class="btn btn-warning btn-sm">Edit</a>
                             <form method="POST" action="{{ url_for('delete_user', user_id=sub_user['_id']) }}" class="delete-form" style="display:inline;">
                                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>
@@ -89,9 +91,9 @@
             {% endif %}
         </tbody>
     </table>
-
 </div>
 
+<!-- JavaScript Section -->
 <script>
     // Confirmation Prompt for Deletion
     document.querySelectorAll('form.delete-form').forEach(form => {

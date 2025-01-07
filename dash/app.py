@@ -3,12 +3,10 @@ from flask_pymongo import PyMongo
 from flask_login import UserMixin, login_user, login_required, logout_user, current_user, LoginManager
 from flask_bcrypt import Bcrypt
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, Length, EqualTo
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Length, EqualTo, Email
 from bson.objectid import ObjectId
-from datetime import datetime
 from functools import wraps
-import logging
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -21,13 +19,11 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
-
 # User Class
 class User(UserMixin):
-    def __init__(self, username, id, role):
+    def __init__(self, username, email, id, role):
         self.username = username
+        self.email = email
         self.id = str(id)
         self.role = role
 
@@ -36,9 +32,9 @@ def load_user(user_id):
     try:
         user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
         if user:
-            return User(user["username"], user["_id"], user.get("role", "user"))
-    except Exception as e:
-        logging.error(f"Error loading user: {e}")
+            return User(user["username"], user["email"], user["_id"], user.get("role", "user"))
+    except Exception:
+        pass
     return None
 
 # Role Decorator
@@ -56,12 +52,24 @@ def role_required(*roles):
 # Forms
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=20)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    register_as_vendor = BooleanField('Register as Vendor')
+    company_name = StringField('Company Name', validators=[Length(min=3, max=100)])
+    contact_info = TextAreaField('Contact Information', validators=[Length(min=10)])
     submit = SubmitField('Register')
 
+class CreateAccountForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=20)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Create Account')
+
+# LoginForm class update
 class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Login')
@@ -76,16 +84,19 @@ def home():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        existing_user = mongo.db.users.find_one({"username": form.username.data})
+        existing_user = mongo.db.users.find_one({"email": form.email.data})
         if existing_user:
-            flash("Username already exists!", "danger")
+            flash("Email already exists!", "danger")
             return redirect(url_for('register'))
         
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        role = 'vendor' if 'vendor' in request.form else 'user'
         
+        # Check if the user registered as vendor
+        role = 'vendor' if form.register_as_vendor.data else 'user'  # Check the vendor registration checkbox
+
         user_id = mongo.db.users.insert_one({
             "username": form.username.data,
+            "email": form.email.data,  # Store email in MongoDB
             "password": hashed_password,
             "role": role
         }).inserted_id
@@ -94,11 +105,16 @@ def register():
         if role == 'vendor':
             mongo.db.vendors.insert_one({
                 "user_id": user_id,
-                "company_name": request.form.get('company_name', ''),
-                "contact_info": request.form.get('contact_info', '')
+                "company_name": form.company_name.data,  # Store vendor data
+                "contact_info": form.contact_info.data
             })
+
+        # Flash the confirmation message
         flash(f"Account created as {role}! Please login.", "success")
+
+        # Redirect to the login page
         return redirect(url_for('login'))
+    
     return render_template('register.html', form=form)
 
 # Login Route
@@ -106,9 +122,10 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = mongo.db.users.find_one({"username": form.username.data})
+        # Find the user by email instead of username
+        user = mongo.db.users.find_one({"email": form.email.data})  # Search by email
         if user and bcrypt.check_password_hash(user["password"], form.password.data):
-            user_obj = User(user["username"], user["_id"], user.get("role", "user"))
+            user_obj = User(user["username"], user["email"], user["_id"], user.get("role", "user"))
             login_user(user_obj, remember=form.remember_me.data)
             flash("Login successful!", "success")
             return redirect(url_for('dashboard'))
@@ -133,18 +150,14 @@ def dashboard():
 @role_required('vendor')
 def vendor_dashboard():
     try:
-        logging.debug(f"Accessing vendor dashboard for user: {current_user.username} (ID: {current_user.id})")
-        
         # Fetch vendor details using the current user's ID (assuming vendor is identified by the user's ID)
         vendor = mongo.db.vendors.find_one({"user_id": ObjectId(current_user.id)})
         if not vendor:
-            logging.warning("Vendor profile not found for the current user.")
             flash("Vendor profile not found.", "danger")
             return redirect(url_for('dashboard'))
 
         # Fetch admin users associated with the vendor
         admin_users = mongo.db.users.find({"role": "admin", "vendor_id": vendor["_id"]})
-        logging.debug(f"Admin users fetched: {admin_users}")
 
         # Prepare list of admin user details
         admin_users_details = list(admin_users)
@@ -156,7 +169,6 @@ def vendor_dashboard():
             if "user_id" in sub_user:
                 user_details = mongo.db.users.find_one({"_id": ObjectId(sub_user["user_id"])})
             else:
-                logging.warning(f"Missing 'user_id' in sub_user: {sub_user}")
                 user_details = mongo.db.users.find_one({"_id": sub_user["vendor_id"]})  # Fallback to vendor_id
             if user_details:
                 sub_users_details.append(user_details)
@@ -164,8 +176,7 @@ def vendor_dashboard():
         form = RegistrationForm()
         return render_template('vendor_dashboard.html', vendor=vendor, sub_users=sub_users_details, admin_users=admin_users_details, form=form)
 
-    except Exception as e:
-        logging.error(f"Vendor Dashboard Error: {e}", exc_info=True)
+    except Exception:
         flash("Error loading vendor dashboard.", "danger")
         return redirect(url_for('dashboard'))
 
@@ -177,66 +188,66 @@ def admin_dashboard():
     try:
         users = mongo.db.users.find({"role": "admin"})
         return render_template('admin_dashboard.html', users=users)
-    except Exception as e:
-        logging.error(f"Error fetching admin accounts: {e}", exc_info=True)
+    except Exception:
         flash("Error loading admin dashboard.", "danger")
-        return redirect(url_for('dashboard'))  # Redirect to general dashboard on error
+        return redirect(url_for('dashboard'))
 
-# Create Admin Route
 @app.route('/vendor/create_admin', methods=['GET', 'POST'])
 @login_required
 @role_required('vendor')
 def create_admin():
-    form = RegistrationForm()
+    form = CreateAccountForm()
     if form.validate_on_submit():
-        # Check if username already exists
-        existing_user = mongo.db.users.find_one({"username": form.username.data})
+        existing_user = mongo.db.users.find_one({"email": form.email.data})
         if existing_user:
-            flash("Username already taken!", "danger")  # Flash error message
-            return redirect(url_for('create_admin'))  # Redirect to avoid resubmission
+            flash("Email already exists!", "danger")
+            return redirect(url_for('create_admin'))
 
-        # Hash password and insert user into database
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        vendor = mongo.db.vendors.find_one({"user_id": ObjectId(current_user.id)})
+        if not vendor:
+            flash("Vendor profile not found.", "danger")
+            return redirect(url_for('vendor_dashboard'))
+
+        # Insert into the database
         mongo.db.users.insert_one({
             "username": form.username.data,
+            "email": form.email.data,
             "password": hashed_password,
-            "role": "admin"
+            "role": "admin",
+            "vendor_id": vendor["_id"]
         })
-        flash("Admin account created successfully.", "success")  # Success message
-        return redirect(url_for('vendor_dashboard'))  # Redirect to vendor dashboard
 
-    return render_template('create_admin.html', form=form)  # Render form if not submitted
+        flash("Admin created successfully!", "success")
+        return redirect(url_for('vendor_dashboard'))
 
-# Create Sub-user Route
+    return render_template('create_admin.html', form=form)
+
 @app.route('/vendor/create_sub_user', methods=['GET', 'POST'])
 @login_required
 @role_required('vendor')
 def create_sub_user():
-    form = RegistrationForm()
+    form = CreateAccountForm()
     if form.validate_on_submit():
-        # Check if the username already exists
-        existing_user = mongo.db.users.find_one({"username": form.username.data})
+        existing_user = mongo.db.users.find_one({"email": form.email.data})
         if existing_user:
-            flash("Username already exists!", "danger")
+            flash("Email already exists!", "danger")
             return redirect(url_for('create_sub_user'))
 
-        # Hash the password
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        
-        # Verify the current vendor exists and link correctly
         vendor = mongo.db.vendors.find_one({"user_id": ObjectId(current_user.id)})
         if not vendor:
-            flash("Vendor profile not found. Please contact support.", "danger")
+            flash("Vendor profile not found.", "danger")
             return redirect(url_for('vendor_dashboard'))
 
-        # Insert the new sub-user into 'users' collection
+        # Insert the sub-user into the database
         user_id = mongo.db.users.insert_one({
             "username": form.username.data,
+            "email": form.email.data,
             "password": hashed_password,
             "role": "sub_user"
         }).inserted_id
 
-        # Link the sub-user to the vendor using 'vendor_users' collection
         mongo.db.vendor_users.insert_one({
             "vendor_id": vendor["_id"],
             "user_id": user_id
@@ -260,14 +271,15 @@ def update_user(user_id):
     if request.method == 'POST':
         # Update the user information
         username = request.form['username']
+        email = request.form['email']  # Update email field
         password = request.form.get('password')
         role = request.form['role']
         
         if password:
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-            mongo.db.users.update_one({"_id": ObjectId(user_id)}, {"$set": {"username": username, "password": hashed_password, "role": role}})
+            mongo.db.users.update_one({"_id": ObjectId(user_id)}, {"$set": {"username": username, "email": email, "password": hashed_password, "role": role}})
         else:
-            mongo.db.users.update_one({"_id": ObjectId(user_id)}, {"$set": {"username": username, "role": role}})
+            mongo.db.users.update_one({"_id": ObjectId(user_id)}, {"$set": {"username": username, "email": email, "role": role}})
         
         flash("User updated successfully.", "success")
         return redirect(url_for('vendor_dashboard'))
@@ -291,8 +303,7 @@ def delete_user(user_id):
         
         return redirect(url_for('vendor_dashboard'))
 
-    except Exception as e:
-        logging.error(f"Error deleting user: {e}")
+    except Exception:
         flash("Error deleting user.", "danger")
         return redirect(url_for('vendor_dashboard'))
 

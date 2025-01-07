@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Create Admin{% endblock %}
+{% block title %}Create Sub-user{% endblock %}
 
 {% block content %}
 <style>
@@ -55,8 +55,8 @@
 
 <div class="floating-form-container">
     <div class="floating-form">
-        <h2>Create Admin Account</h2>
-        <form method="POST" action="{{ url_for('create_admin') }}">
+        <h2>Create Sub-user Account</h2>
+        <form method="POST" action="{{ url_for('create_sub_user') }}">
             {{ form.hidden_tag() }}
             
             <!-- Username Field -->
@@ -84,7 +84,7 @@
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary">Create Admin</button>
+            <button type="submit" class="btn btn-primary">Create Sub-user</button>
         </form>
 
         <!-- Back to Vendor Dashboard Button -->
